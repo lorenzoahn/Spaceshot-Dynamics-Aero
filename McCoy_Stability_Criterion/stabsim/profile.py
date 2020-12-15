@@ -31,22 +31,39 @@ class Profile:
         self.altit = np.array(integrate.cumtrapz(vel * np.cos(hangle), x=self.tt, initial=0))
 
     def rho(self):
+        """
+        Returns an array with the air density at heights of [0:self.altitude]
+        Source for air density at below 11km: https://www.grc.nasa.gov/www/k-12/airplane/atmosmet.html
+        """
         rho = []
-        trop_x = np.argmax(self.altit > 11000)
-        if trop_x == 0:
-            trop_x = len(self.altit)
-        rho.extend([1.225 * (288.15 / (288.15 + -0.0065 * x ** (1 + (9.8 * 0.02896) / (8.3145 * -0.0065)))) \
-            for x in self.altit[:trop_x]])
 
+        # Lower troposphere (0 - 11km) --- returns result in kg/m^3
+        # Source: https://www.grc.nasa.gov/www/k-12/airplane/atmosmet.html
+        # Assumes that the pressure and temperature change only with altitude
+        # ** Are the other pressure calculations also in kg/m^3?
+        l_trop_x = np.argmax(self.altit > 0)
+        if l_trop_x == 0:
+            l_trop_x = len(self.altit)
+            rho.extend([((101.29 * ((15.04 - 0.00649 * x) + 273.1) / 288.08) ** 5.256) / (0.2869 * ((15.04 - 0.00649 * x) + 273.1))]) \
+                for x in self.altit[:l_trop_x])
+
+        # Higher troposphere (11km - 20km)
+        h_trop_x = np.argmax(self.altit > 11000)
+        if h_trop_x == 0:
+            h_trop_x = len(self.altit)
+        rho.extend([1.225 * (288.15 / (288.15 + -0.0065 * x ** (1 + (9.8 * 0.02896) / (8.3145 * -0.0065)))) \
+            for x in self.altit[l_trop_x:h_trop_x]])
+
+        # Stratosphere (20km - 32 km)
         strat_x = np.argmax(self.altit > 20000)
         if strat_x == 0:
             strat_x = len(self.altit)
         rho.extend([0.364 * np.exp(-(9.8 * 0.02896 * x / (8.3145 * 216.65))) \
-            for x in self.altit[trop_x:strat_x]])
+            for x in self.altit[h_trop_x:strat_x]])
 
         # assumed below the mesosphere (32km)
         rho.extend([0.088 * (216.65 / (216.65 + 0.001 * x ** (1 + (9.8 * 0.02896) / (8.3145 * 0.001)))) \
-            for x in self.altit[trop_x:strat_x]])
+            for x in self.altit[h_trop_x:strat_x]])
 
         return np.array(rho)
 
