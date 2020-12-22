@@ -44,8 +44,8 @@ class Profile:
         l_trop_x = np.argmax(self.altit > 0)
         if l_trop_x == 0:
             l_trop_x = len(self.altit)
-            rho.extend([((101.29 * ((15.04 - 0.00649 * x) + 273.1) / 288.08) ** 5.256) / (0.2869 * ((15.04 - 0.00649 * x) + 273.1))]) \
-                for x in self.altit[:l_trop_x])
+        rho.extend([((101.29 * ((15.04 - 0.00649 * x) + 273.1) / 288.08) ** 5.256) / (0.2869 * ((15.04 - 0.00649 * x) + 273.1))]) \
+            for x in self.altit[:l_trop_x])
 
         # Higher troposphere (11km - 20km)
         h_trop_x = np.argmax(self.altit > 11000)
